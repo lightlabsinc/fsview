@@ -1,0 +1,129 @@
+The project layout is as follows:
+
+COMMON HEADERS
+
+./allsys.h          GLibC includes (+ memfd_open -> sysctl)
+
+./wrapper.h         STL includes (+ helper definitions)
+                    Typedefs: Ptr, Index, List
+                    Routines: New, Leave, Temp
+
+FORMAT HELPERS
+
+./impl/datetm.h     Date/time conversions and helper types
+./impl/datetm.cpp
+
+./impl/endian.h     Endian-aware primitives. Includes CDFS "both-endian" formats.
+                    Classes/structures: SB<I, L>, MSB<I>, LSB<I>, Bilateral<I>
+
+./impl/strdec.h     UTF-8 (or platform-specific) string decoding routines.
+./impl/strdec.cpp   Classes/structures: IDecoder, ISO88591Flat, UTF8Homebrew
+
+./impl/strenc.h     String re-encoding routines supporting the target filesystems.
+./impl/strenc.cpp   Implementations include ANSI (FAT32, ISO-9660), UTF-8 (HFS), UCS-2 (Joliet)
+                    Classes/structures: IUniDeco (decoding), ICharPack (encoding)
+
+./impl/strenc.inc   Helper definitions for Central European and Korean Hangul characters (HFS+)
+
+
+ALGORITHM HELPERS
+
+./impl/unique.h     Generates unique abbreviated filenames for a given representation constraint
+./impl/unique.cpp   (e.g. FILENA01.TXT, CONSTRA1.DOC for DOS 8.3).
+                    Classes/structures: UniqName, INameRule, NamePool...
+
+
+PLATFORM HELPERS
+
+./impl/attrib.h     A helper to access /sys or /proc attributes.
+./impl/attrib.cpp   Routines: setAttrib(), getAttrib().
+
+./impl/mapper.h     Query access to /dev/device-mapper.
+./impl/mapper.cpp   Classes/structures: Mapper
+
+./impl/rlimit.h     Access to system-wide resource limits.
+./impl/rlimit.cpp   Routines: FsMaxFiles(), GetFDLimit(), SetFDLimit(), RaiseFDLimit()
+
+
+INTERFACES / SKELETAL
+
+./impl/extent.h     Defines contiguous storage media and their contiguous ranges.
+./impl/extent.cpp   Classes/structures: Extent = <Range, Medium>,
+                    FileMedium, ZeroMedium, TempMedium, DiskMedium, RuleMedium,
+                    Blocks (padding arithmetic), Later (fixups), IAppend (growing storage),
+                    ILocator (underlying storage resolver)
+
+./impl/burner.h     Writers ("burners") of contiguous storage spaces, backed
+./impl/burner.cpp   by memory objects, regular files, block devices and DM devices ("origami").
+                    Classes: Burner, VectBurner, FileBurner, ZRamBurner, DiskBurner, Planner
+
+./impl/source.h     A model of the file and directory tree to write or expose.
+./impl/source.cpp   Classes/structures: Follower (path visitor), Entry, PathEntry, FileEntry,
+                    Hierarchy (the entire traversed file tree)
+
+./impl/device.h     Source device area layout.
+./impl/device.cpp   Implements the (source block -> target block) mapping arithmetic.
+                    Classes/structures: Territory, Planetary, Colonies, Geometry (area maps),
+                    DeviceMap, ExtentIoc (: ILocator), DevMedia (drive/extent lookup)
+
+./impl/volume.h     A skeletal implementation of the target filesystem volume.
+./impl/volume.cpp   Classes/structures: Original (block and file information),
+                    Volume (sole or primary volume), Hybrid (secondary volume)
+
+
+PARTITIONS / FILESYSTEMS
+
+./impl/cd9660.h     ISO-9660 with Joliet extension (the compact disk standard).
+./impl/cd9660.cpp   Namespace: CD
+                    Classes/structures: DateTime, DirEntryDtTime,
+                    PathEntryTable, DirectoryEntry, VolumeDesc,
+                    ((Gen|Pri|Sec|Map|End)Vol|Joliet)Desc, CD9660Out
+
+./impl/hfplus.h     HFSX (HFS+ case-sensitive), the Apple filesystem.
+./impl/hfplus.cpp   Namespace: HP
+                    Classes/structures: MacTextEncoding, HFSUniStr255, MacString,
+                    FinderFlags, ExtendedFlags, FourCharCode, OSType, ForkType,
+                    FileInfo, ExtendedFileInfo, FolderInfo, ExtendedFolderInfo,
+                    HFSPlusBSDInfo, HFSPlusForkData, HFSPlusExtentDescriptor,
+                    HFSPlusExtentKey, HFSPlusCatalogKey, HFSPlusCatalogEntry,
+                    HFSPlusCatalogFolder, HFSPlusCatalogFile, HFSPlusCatalogThread,
+                    BTreeAttr, BTreeTypes, BTreeKCType, BTHeaderRec, BTNodeKind,
+                    BTNodeDescriptor, BTUserDataRec, BTIndexPointer, TreeBuilder,
+                    Record, NamedRecord, NodeSpec, FileTypes,
+                    HFSPlusAttrForkData, HFSPlusAttrExtents,
+                    HFSPlusVolumeHeader, HFSPlusVolumeBuilder, HFPlusOut
+
+./impl/master.h     The standard PC Master Boot Record.
+./impl/master.cpp   Structures: CHS, FixedDisk, MBR
+
+./impl/vfat32.h     A FAT32 implementation. Lowest compatibility threshold; least efficient.
+./impl/vfat32.cpp   Namespace: VF
+                    Classes/structures: Attribute, AlphaCase, FatTime, FatDate,
+                    DirectoryEntry, LongNameEntry, VolumeDesc, SummarySec,
+                    VFatMedium (a RuleMedium to generate a long and boring FAT), VFat32Out
+
+
+CONFIGURATION AID
+
+./conf/cmdarg.h     Command line argument and attribute value parser.
+./conf/cmdarg.cpp   Classes/structures: StrKey, ConfCb, CmdArgs, SubOpt
+
+./conf/config.h     Actual configurations for the command line tools listed below.
+./conf/config.cpp   Classes/structures: StdArgs, CtrlConf,
+                    MkfsConf, ForkConf, TempConf, NameConf
+
+
+COMMAND LINE TOOLS
+
+./fsview_mkfs.cpp   Create the target filesystem volume from a file tree
+                    (as a mapped device or as a regular disk image file).
+
+./fsview_fork.cpp   Mirror a block device with Device Mapper.
+
+./fsview_name.cpp   Query the internal name (e.g. "userdata") of a mapped device.
+
+./fsview_down.cpp   Tear down a mapped device.
+
+./fsview_temp.cpp   Generate an empty FAT32 disk image file of a given size.
+
+./fsview_hash.cpp   Generate a hash from a string, optionally setting a system property.

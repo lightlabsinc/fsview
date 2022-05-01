@@ -1,0 +1,66 @@
+# Copyright (c) 2022 Light Labs Inc.
+# All Rights Reserved
+# Released under the MIT license.
+
+## In init.rc, add the following line
+#    exec - -- /system/bin/sh /init.fsv.sync.sh
+## immediately after
+# on property:vold.decrypt=trigger_load_persist_props
+## Success sets light.sync.status = 0, thereby enabling the steps below.
+
+on post-fs-data
+    chown system system /sys/class/android_usb/android0/f_mass_storage/lun0/file
+    chmod 0660 /sys/class/android_usb/android0/f_mass_storage/lun0/file
+    chown system system /sys/class/android_usb/android0/f_mass_storage/lun1/file
+    chmod 0660 /sys/class/android_usb/android0/f_mass_storage/lun1/file
+    # There is no property substitution in mkdir...
+    mkdir /data/local/scratch
+    chmod 0770 /data/local/scratch
+    chown system system /data/local/scratch
+
+# rlimit: we can't read the maximum, so can't meaningfully set rlimit 7 (nofile)
+# user/group: define a dedicated account and provide it with SELinux permissions
+service instant_sync /system/bin/sh /init.fsv.sync_service.sh
+    user root
+    group root
+    disabled
+    oneshot
+
+# A state machine with runlevels 0 to 4. Wherever the status
+# is not set explicitly, it is set conditionally by the script.
+
+on property:light.sync.status=0 && property:light.sync.enable=1
+    start instant_sync
+
+on property:light.sync.status=1 && property:light.sync.enable=1
+    exec - -- /system/bin/sh /init.fsv.sync_mkcdrom.sh
+    setprop light.sync.status 2
+
+on property:light.sync.status=2 && property:light.sync.enable=1
+    exec - -- /system/bin/sh /init.fsv.sync_scratch.sh
+    setprop light.sync.status 3
+
+on property:light.sync.status=3 && property:light.sync.enable=1
+    exec - -- /system/bin/sh /init.fsv.sync_publish.sh
+    setprop light.sync.status 4
+
+on property:light.sync.status=4 && property:light.sync.enable=0
+    exec - -- /system/bin/sh /init.fsv.sync_reclaim.sh
+
+# This is a catch-up ring buoy. Normally we don't need to disable
+# the USB gadget and, therefore, don't need to restart anything.
+on property:light.sync.kickadbd=*
+    restart adbd
+
+on property:light.sync.status=3 && property:light.sync.enable=0
+    exec - -- /system/bin/sh /init.fsv.sync_handoff.sh
+    setprop light.sync.status 2
+
+on property:light.sync.status=2 && property:light.sync.enable=0
+    exec - -- /sbin/fsview_down virtualcd
+    setprop light.sync.status 1
+
+on property:light.sync.status=1 && property:light.sync.enable=0
+    stop instant_sync
+    exec - -- /sbin/fsview_down virtualhd
+    setprop light.sync.status 0
