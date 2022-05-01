@@ -37,13 +37,13 @@ Non-ANSI characters in file names are supported in all exposed virtual file syst
 
 # How to build it?
 
-* [](CMakeLists.txt) has been provided for portability.
-* [](Android.mk) and [](Application.mk) have been provided to ease integration into an Android firmware build.
+* [CMakeLists.txt](CMakeLists.txt) has been provided for portability.
+* [Android.mk](Android.mk) and [Application.mk](Application.mk) have been provided to ease integration into an Android firmware build.
 * `bfs.sh` is a naive but handy shell script that compiles, links, uploads and runs an `fsview_*` executable named in the first command line parameter. The remaining command line parameters are forwarded to it.
 
 The script is self-contained. To use it, consider tweaking the local paths according to your comfortable environment.
 
-The common implementation library ([](conf) and [](impl)) is linked into all the end binaries statically. Even though binary footprint may be a concern for a proof-of-concept embedded system, full static linkage is still advised for any code runnable early in the boot sequence.
+The common implementation library ([conf](conf) and [impl](impl)) is linked into all the end binaries statically. Even though binary footprint may be a concern for a proof-of-concept embedded system, full static linkage is still advised for any code runnable early in the boot sequence.
 
 # How to use it?
 
@@ -87,11 +87,11 @@ To allow smaller CD images, you can also set `min_sectors` to 20 (reserved area 
 
 ## Android integration
 
-A possible Android integration strategy is described in [](ANDROID.md).
+A possible Android integration strategy is described in [ANDROID.md](ANDROID.md).
 
 # Developer notes
 
-A more or less granular class/source file breakdown is provided in [](SOURCES).
+A more or less granular class/source file breakdown is provided in [SOURCES](SOURCES).
 
 There are two steps of filesystem creation:
 

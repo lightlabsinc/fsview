@@ -17,7 +17,7 @@ Even before any firmware change you can play with `fsview_*` tools in unprivileg
 
 ### Init sequence preparation
 
-See [](init) for example `*.rc` and shell scripts to place to the root directory. `init.fsv.sync.rc` governs the state machine that erects the ephemeral filesystem on a mapped block device and sets that device as the storage file exposed by the gadget driver; this state machine will be explained below in detail.
+See [init](init) for example `*.rc` and shell scripts to place to the root directory. `init.fsv.sync.rc` governs the state machine that erects the ephemeral filesystem on a mapped block device and sets that device as the storage file exposed by the gadget driver; this state machine will be explained below in detail.
 
 In `init.rc`, in `on property:vold.decrypt=trigger_load_persist_props`, add the following line at the very beginning:
 
@@ -71,7 +71,7 @@ Choose a name for the system property to control the ephemeral FS status. It wou
 
     public static final String PROPERTY_SYNC_ENABLE = "light.sync.enable";
 
-The example [](android/MSGModeObserver) application registers a USB mode receiver upon boot (since that can only be done in code rather than with metadata) and sets the `light.sync.enable` property to 1 or 0 based on the USB connection state (the linger timeout is used to stabilize the response to a flurry of USB notification broadcasts).
+The example [android/MSGModeObserver](connection observer) application registers a USB mode receiver upon boot (since that can only be done in code rather than with metadata) and sets the `light.sync.enable` property to 1 or 0 based on the USB connection state (the linger timeout is used to stabilize the response to a flurry of USB notification broadcasts).
 
 ### Configuring the media library
 
